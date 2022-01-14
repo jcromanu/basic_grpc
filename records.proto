@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option go_package = "example.com/record";
+
+package record;
+
+service RecordService {
+    //Simple RPC
+    rpc GetRecord(RecordRequest) returns (RecordResponse);
+    //Server side streaming RPC  
+    rpc ListRecords(User) returns (stream RecordResponse); 
+    //Client side streaming RPC
+    rpc SetRecords(stream RecordRequest) returns (Error); 
+    //Bi directional side streaming RPC
+    rpc RecordPong(stream RecordRequest) returns (stream RecordResponse);
+}
+
+message  RecordRequest {
+    string id = 1;
+}
+ 
+message RecordResponse {
+    Record record = 1;
+    Error error = 2;
+}
+
+message Record {
+    string recordId = 1;
+    string userId = 2; 
+    double volume = 3;
+}
+
+message User {
+    string userId = 1 ;
+    enum Type {
+        option allow_alias = true ;
+        FREE = 0 ;
+        ENTERPRISE = 1 ;
+        COMPANY = 1 ;
+    }
+    Type type = 2;
+}
+
+
+message Error {
+    int32 code = 1;
+    string message = 2;
+}
+ 

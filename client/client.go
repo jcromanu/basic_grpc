@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 
 	"google.golang.org/grpc"
@@ -19,9 +20,25 @@ func main() {
 	}
 	defer conn.Close()
 	client := pb.NewRecordServiceClient(conn)
+	//Simple RPC
 	recordResponse, err := client.GetRecord(context.Background(), &pb.RecordRequest{Id: "1"})
 	if err != nil {
 		log.Fatal("Error on record", err)
 	}
 	log.Println("Simple RPC record :", recordResponse.Record.RecordId)
+	//Server side streaming
+	stream, err := client.ListRecords(context.Background(), &pb.User{UserId: "1", Type: pb.User_ENTERPRISE})
+	if err != nil {
+		log.Fatal("Error on streaming ", err)
+	}
+	for {
+		recordResponse, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal("Error on streaming ", err)
+		}
+		log.Print("server streaming Record id:", recordResponse.Record.RecordId)
+	}
 }

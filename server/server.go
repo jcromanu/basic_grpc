@@ -13,7 +13,7 @@ type RecordServiceServer struct {
 	pb.UnimplementedRecordServiceServer
 }
 
-var recordList = []pb.Record{{RecordId: "1", UserId: "1", Volume: 1}}
+var recordList = []pb.Record{{RecordId: "1", UserId: "1", Volume: 1}, {RecordId: "2", UserId: "1", Volume: 1}}
 
 func (r *RecordServiceServer) GetRecord(ctx context.Context, rq *pb.RecordRequest) (*pb.RecordResponse, error) {
 	for _, record := range recordList {
@@ -26,6 +26,11 @@ func (r *RecordServiceServer) GetRecord(ctx context.Context, rq *pb.RecordReques
 
 //Server side streaming RPC
 func (r *RecordServiceServer) ListRecords(u *pb.User, rs pb.RecordService_ListRecordsServer) error {
+	for _, record := range recordList {
+		if err := rs.Send(&pb.RecordResponse{Record: &record, Error: nil}); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

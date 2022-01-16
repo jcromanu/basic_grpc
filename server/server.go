@@ -53,7 +53,18 @@ func (r *RecordServiceServer) SetRecords(rs pb.RecordService_SetRecordsServer) e
 
 //Bi directional side streaming RPC
 func (r *RecordServiceServer) RecordPong(rs pb.RecordService_RecordPongServer) error {
-	return nil
+	for {
+		in, err := rs.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if err := rs.Send(&pb.RecordResponse{Record: &pb.Record{RecordId: in.Id, UserId: "1", Volume: 2}, Error: nil}); err != nil {
+			return err
+		}
+	}
 }
 
 //TBD ???

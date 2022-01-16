@@ -58,4 +58,27 @@ func main() {
 		log.Fatal("Error on client streaming ", err)
 	}
 	log.Println("client side streaming: ", reply.Message)
+	//Bi directional side streaming
+	strb, err := client.RecordPong(context.Background())
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			in, err := strb.Recv()
+			if err == io.EOF {
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatal("Error on bidirectional streaming ", err)
+			}
+			log.Println("Bidirectional side streaming: ", in.Record.RecordId)
+		}
+	}()
+	for _, record := range recordRequestList {
+		if err := strb.Send(record); err != nil {
+			log.Fatal("Error on bidirectional streaming  ", err)
+		}
+	}
+	strb.CloseSend()
+	<-waitc
 }

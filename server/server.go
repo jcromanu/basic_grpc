@@ -2,6 +2,7 @@ package main
 
 import (
 	context "context"
+	"io"
 	"log"
 	"net"
 
@@ -36,7 +37,18 @@ func (r *RecordServiceServer) ListRecords(u *pb.User, rs pb.RecordService_ListRe
 
 //Client side streaming RPC
 func (r *RecordServiceServer) SetRecords(rs pb.RecordService_SetRecordsServer) error {
-	return nil
+	var records string
+	for {
+		recordR, err := rs.Recv()
+		if err == io.EOF {
+
+			return rs.SendAndClose(&pb.Error{Code: 200, Message: records})
+		}
+		if err != nil {
+			return err
+		}
+		records += " record: " + recordR.GetId()
+	}
 }
 
 //Bi directional side streaming RPC
